@@ -3,62 +3,161 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kudex - MVP</title>
+  <title>Kudex - MVP Navegación y Secciones</title>
   <style>
-    /* Estilos mínimos para estructurar la pantalla */
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-    body { display: flex; height: 100vh; background: #f4f4f9; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { display: flex; height: 100vh; background: #f8f9fa; color: #333; }
+
+    /* BARRA LATERAL / NAVEGACIÓN */
+    aside { width: 240px; background: #ffffff; border-right: 1px solid #e0e0e0; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+    aside h2 { color: #2c3e50; font-size: 1.4rem; }
+    .menu-nav { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .menu-btn { width: 100%; text-align: left; padding: 10px 14px; background: none; border: none; border-radius: 6px; cursor: pointer; font-size: 0.95rem; font-weight: 500; color: #555; transition: 0.2s; }
+    .menu-btn:hover, .menu-btn.active { background: #eef2f5; color: #000; font-weight: 600; }
+
+    /* CONTENEDOR PRINCIPAL DE VISTAS */
+    main { flex: 1; padding: 30px; overflow-y: auto; }
+    .vista { display: none; }
+    .vista.active { display: block; }
+
+    /* ESTILOS DE CABECERA Y BOTONES */
+    .header-seccion { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .btn-principal { background: #2b2d42; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; }
+    .btn-principal:hover { background: #1d1e2c; }
+
+    /* VISTA 1: CALENDARIO */
+    .agenda-card { background: #fff; border: 1px solid #e0e0e0; padding: 20px; border-radius: 8px; max-width: 500px; }
+    input[type="date"] { padding: 8px; font-size: 1rem; border: 1px solid #ccc; border-radius: 4px; margin-top: 10px; width: 100%; }
+
+    /* VISTA 2: PENDIENTES */
+    .lista-pendientes { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+    .item-pendiente { background: #fff; padding: 12px; border: 1px solid #e0e0e0; border-radius: 6px; display: flex; align-items: center; gap: 10px; }
+    .input-tarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
+
+    /* VISTA 3: NOTAS Y CUADERNOS */
+    .grid-cuadernos { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
+    .tarjeta-cuaderno { background: #fff; border: 1px solid #e0e0e0; border-top: 5px solid #2b2d42; padding: 15px; border-radius: 6px; cursor: pointer; min-height: 120px; display: flex; flex-direction: column; justify-content: space-between; }
+    .tarjeta-cuaderno:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
     
-    /* Barra lateral (Calendario y Tareas) */
-    aside { width: 300px; background: #ffffff; border-right: 1px solid #ddd; padding: 20px; }
-    
-    /* Área principal (Notas y Lienzo) */
-    main { flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
-    
-    /* Bloque editable tipo Notion */
-    .nota-texto {
-      background: #fff;
-      padding: 15px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      min-height: 120px;
-      outline: none;
-    }
-    
-    /* Lienzo delimitado para lápiz */
-    .contenedor-canvas { background: #fff; border-radius: 8px; border: 1px solid #ccc; padding: 10px; }
-    canvas { background: #fafafa; border: 1px dashed #aaa; cursor: crosshair; touch-action: none; }
+    /* EDITOR DE NOTAS */
+    .editor-nota { background: #fff; border: 1px solid #e0e0e0; padding: 20px; border-radius: 8px; margin-top: 15px; min-height: 250px; outline: none; }
   </style>
 </head>
 <body>
 
-  <!-- BARRA LATERAL: AGENDA NATIVA -->
+  <!-- BARRA LATERAL (NAVEGACIÓN) -->
   <aside>
     <h2>Kudex</h2>
-    <br>
-    <label for="fecha">Fecha:</label>
-    <input type="date" id="fecha">
-    <br><br>
-    <h3>Pendientes del día</h3>
-    <ul id="lista-tareas">
-      <li><input type="checkbox"> Probar trazo digital</li>
+    <ul class="menu-nav">
+      <li><button class="menu-btn active" onclick="cambiarVista('calendario')">📅 Calendario</button></li>
+      <li><button class="menu-btn" onclick="cambiarVista('pendientes')">☑️ Pendientes</button></li>
+      <li><button class="menu-btn" onclick="cambiarVista('notas')">📚 Cuadernos / Notas</button></li>
     </ul>
   </aside>
 
-  <!-- ÁREA PRINCIPAL: NOTAS Y TRAZO -->
+  <!-- ÁREA DE CONTENIDO (PÁGINAS) -->
   <main>
-    <!-- Bloque editable de texto -->
-    <div class="nota-texto" contenteditable="true" placeholder="Escribe tus notas rápidas aquí..."></div>
 
-    <!-- Area de dibujo delimitada -->
-    <div class="contenedor-canvas">
-      <h3>Apuntes a mano</h3>
-      <br>
-      <canvas id="lienzo" width="600" height="300"></canvas>
-      <br><br>
-      <button id="limpiar">Limpiar lienzo</button>
-    </div>
+    <!-- PÁGINA 1: CALENDARIO Y FECHAS -->
+    <section id="vista-calendario" class="vista active">
+      <div class="header-seccion">
+        <h1>Mi Agenda</h1>
+      </div>
+      <div class="agenda-card">
+        <h3>Selecciona un día:</h3>
+        <input type="date" id="selector-fecha">
+        <br><br>
+        <h4>Resumen de la fecha seleccionada:</h4>
+        <p style="color: #777; margin-top: 8px;">No hay eventos registrados para este día.</p>
+      </div>
+    </section>
+
+    <!-- PÁGINA 2: PENDIENTES / TAREAS -->
+    <section id="vista-pendientes" class="vista">
+      <div class="header-seccion">
+        <h1>Lista de Pendientes</h1>
+      </div>
+      <div style="display: flex; gap: 10px; max-width: 500px;">
+        <input type="text" id="nueva-tarea-input" class="input-tarea" placeholder="Agregar un nuevo pendiente...">
+        <button class="btn-principal" onclick="agregarTarea()">Agregar</button>
+      </div>
+      <ul id="contenedor-pendientes" class="lista-pendientes">
+        <li class="item-pendiente"><input type="checkbox"> Definir interfaz inicial de Kudex</li>
+      </ul>
+    </section>
+
+    <!-- PÁGINA 3: NOTAS Y CUADERNOS -->
+    <section id="vista-notas" class="vista">
+      <div class="header-seccion">
+        <h1>Mis Cuadernos</h1>
+        <button class="btn-principal" onclick="crearNota()">+ Nueva Nota</button>
+      </div>
+
+      <!-- Cuadrícula de cuadernos/notas creadas -->
+      <div id="grid-cuadernos" class="grid-cuadernos">
+        <div class="tarjeta-cuaderno" onclick="abrirNota('Notas de Emprendimiento')">
+          <h3>Emprendimiento</h3>
+          <small>1 nota creada</small>
+        </div>
+      </div>
+
+      <!-- Editor de texto integrado -->
+      <div id="area-editor" style="margin-top: 30px;">
+        <h3 id="titulo-nota-activa">Editor de Nota Rápidas</h3>
+        <div class="editor-nota" contenteditable="true" placeholder="Escribe aquí el contenido de tu nota..."></div>
+      </div>
+    </section>
+
   </main>
 
+  <script>
+    // 1. LÓGICA PARA CAMBIAR ENTRE PÁGINAS (VISTAS)
+    function cambiarVista(nombreVista) {
+      // Ocultar todas las vistas
+      document.querySelectorAll('.vista').forEach(vista => vista.classList.remove('active'));
+      document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
+
+      // Mostrar la vista seleccionada
+      document.getElementById(`vista-${nombreVista}`).classList.add('active');
+
+      // Activar botón del menú correspondiente
+      event.target.classList.add('active');
+    }
+
+    // 2. LÓGICA SIMPLE DE AGREGAR PENDIENTES
+    function agregarTarea() {
+      const input = document.getElementById('nueva-tarea-input');
+      const texto = input.value.trim();
+      
+      if (texto !== '') {
+        const ul = document.getElementById('contenedor-pendientes');
+        const li = document.createElement('li');
+        li.className = 'item-pendiente';
+        li.innerHTML = `<input type="checkbox"> ${texto}`;
+        ul.appendChild(li);
+        input.value = '';
+      }
+    }
+
+    // 3. LÓGICA SIMPLE DE AGREGAR NOTAS/CUADERNOS
+    function crearNota() {
+      const nombreNota = prompt("Nombre de la nueva nota o cuaderno:");
+      if (nombreNota) {
+        const grid = document.getElementById('grid-cuadernos');
+        const nuevaTarjeta = document.createElement('div');
+        nuevaTarjeta.className = 'tarjeta-cuaderno';
+        nuevaTarjeta.onclick = () => abrirNota(nombreNota);
+        nuevaTarjeta.innerHTML = `
+          <h3>${nombreNota}</h3>
+          <small>Creado recientemente</small>
+        `;
+        grid.appendChild(nuevaTarjeta);
+      }
+    }
+
+    function abrirNota(titulo) {
+      document.getElementById('titulo-nota-activa').innerText = `Editando: ${titulo}`;
+    }
+  </script>
 </body>
 </html>
