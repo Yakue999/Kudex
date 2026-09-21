@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kudex - MVP</title>
+  <style>
+    /* Estilos mínimos para estructurar la pantalla */
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+    body { display: flex; height: 100vh; background: #f4f4f9; }
+    
+    /* Barra lateral (Calendario y Tareas) */
+    aside { width: 300px; background: #ffffff; border-right: 1px solid #ddd; padding: 20px; }
+    
+    /* Área principal (Notas y Lienzo) */
+    main { flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+    
+    /* Bloque editable tipo Notion */
+    .nota-texto {
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      min-height: 120px;
+      outline: none;
+    }
+    
+    /* Lienzo delimitado para lápiz */
+    .contenedor-canvas { background: #fff; border-radius: 8px; border: 1px solid #ccc; padding: 10px; }
+    canvas { background: #fafafa; border: 1px dashed #aaa; cursor: crosshair; touch-action: none; }
+  </style>
+</head>
+<body>
+
+  <!-- BARRA LATERAL: AGENDA NATIVA -->
+  <aside>
+    <h2>Kudex</h2>
+    <br>
+    <label for="fecha">Fecha:</label>
+    <input type="date" id="fecha">
+    <br><br>
+    <h3>Pendientes del día</h3>
+    <ul id="lista-tareas">
+      <li><input type="checkbox"> Probar trazo digital</li>
+    </ul>
+  </aside>
+
+  <!-- ÁREA PRINCIPAL: NOTAS Y TRAZO -->
+  <main>
+    <!-- Bloque editable de texto -->
+    <div class="nota-texto" contenteditable="true" placeholder="Escribe tus notas rápidas aquí..."></div>
+
+    <!-- Area de dibujo delimitada -->
+    <div class="contenedor-canvas">
+      <h3>Apuntes a mano</h3>
+      <br>
+      <canvas id="lienzo" width="600" height="300"></canvas>
+      <br><br>
+      <button id="limpiar">Limpiar lienzo</button>
+    </div>
+  </main>
+
+</body>
+</html>
