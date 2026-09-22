@@ -3,160 +3,362 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kudex - MVP Navegación y Secciones</title>
+  <title>Kudex - MVP con Tablero y Fechas</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { display: flex; height: 100vh; background: #f8f9fa; color: #333; }
+    /* VARIABLES Y RESETEO */
+    :root { --fondo: #f8f9fa; --borde: #e0e0e0; --acento: #2b2d42; --texto: #333; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+    body { display: flex; height: 100vh; background: var(--fondo); color: var(--texto); overflow: hidden; }
 
-    /* BARRA LATERAL / NAVEGACIÓN */
-    aside { width: 240px; background: #ffffff; border-right: 1px solid #e0e0e0; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
-    aside h2 { color: #2c3e50; font-size: 1.4rem; }
-    .menu-nav { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-    .menu-btn { width: 100%; text-align: left; padding: 10px 14px; background: none; border: none; border-radius: 6px; cursor: pointer; font-size: 0.95rem; font-weight: 500; color: #555; transition: 0.2s; }
+    /* BARRA LATERAL (NAVEGACIÓN) */
+    aside { width: 240px; background: #fff; border-right: 1px solid var(--borde); padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+    aside h2 { font-size: 1.5rem; color: var(--acento); letter-spacing: -0.5px; }
+    .menu-btn { width: 100%; text-align: left; padding: 12px 14px; background: none; border: none; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: 500; color: #555; transition: 0.2s; margin-bottom: 5px; }
     .menu-btn:hover, .menu-btn.active { background: #eef2f5; color: #000; font-weight: 600; }
 
-    /* CONTENEDOR PRINCIPAL DE VISTAS */
+    /* CONTENEDOR PRINCIPAL */
     main { flex: 1; padding: 30px; overflow-y: auto; }
-    .vista { display: none; }
+    .vista { display: none; animation: fadeIn 0.3s ease; }
     .vista.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* ESTILOS DE CABECERA Y BOTONES */
-    .header-seccion { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .btn-principal { background: #2b2d42; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; }
+    /* ELEMENTOS COMUNES */
+    .header-seccion { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+    .btn-principal { background: var(--acento); color: #fff; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: 500; transition: 0.2s; }
     .btn-principal:hover { background: #1d1e2c; }
 
-    /* VISTA 1: CALENDARIO */
-    .agenda-card { background: #fff; border: 1px solid #e0e0e0; padding: 20px; border-radius: 8px; max-width: 500px; }
-    input[type="date"] { padding: 8px; font-size: 1rem; border: 1px solid #ccc; border-radius: 4px; margin-top: 10px; width: 100%; }
+    /* AGENDA / CALENDARIO */
+    .agenda-card { background: #fff; border: 1px solid var(--borde); padding: 25px; border-radius: 12px; max-width: 400px; }
+    input[type="date"] { padding: 10px; font-size: 1rem; border: 1px solid #ccc; border-radius: 6px; outline: none; }
+    .agenda-card input[type="date"] { width: 100%; margin-top: 10px; }
 
-    /* VISTA 2: PENDIENTES */
-    .lista-pendientes { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
-    .item-pendiente { background: #fff; padding: 12px; border: 1px solid #e0e0e0; border-radius: 6px; display: flex; align-items: center; gap: 10px; }
-    .input-tarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
+    /* PENDIENTES CON FECHAS */
+    .contenedor-input-tarea { display: flex; gap: 10px; max-width: 700px; flex-wrap: wrap; }
+    .input-tarea { flex: 1; min-width: 200px; padding: 12px; border: 1px solid #ccc; border-radius: 8px; outline: none; }
+    .lista-pendientes { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-top: 20px; max-width: 700px; }
+    .item-pendiente { background: #fff; padding: 15px; border: 1px solid var(--borde); border-radius: 8px; display: flex; align-items: center; gap: 12px; }
+    .item-pendiente.completada span { text-decoration: line-through; color: #888; }
+    .item-pendiente.completada { background: #fdfdfd; }
+    .fecha-etiqueta { font-size: 0.8rem; background: #eef2f5; padding: 4px 8px; border-radius: 4px; color: #555; white-space: nowrap; }
+    .btn-eliminar { margin-left: auto; background: #ff4d4d; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
 
-    /* VISTA 3: NOTAS Y CUADERNOS */
-    .grid-cuadernos { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
-    .tarjeta-cuaderno { background: #fff; border: 1px solid #e0e0e0; border-top: 5px solid #2b2d42; padding: 15px; border-radius: 6px; cursor: pointer; min-height: 120px; display: flex; flex-direction: column; justify-content: space-between; }
-    .tarjeta-cuaderno:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+    /* TABLERO DE CORCHO Y POST-ITS */
+    .fondo-corcho {
+      background-color: #d4a373; /* Tono base similar al corcho */
+      background-image: radial-gradient(#c69460 15%, transparent 16%), radial-gradient(#c69460 15%, transparent 16%);
+      background-size: 20px 20px;
+      background-position: 0 0, 10px 10px;
+      padding: 30px;
+      border-radius: 12px;
+      min-height: 70vh;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+    }
+    .grid-postits { display: flex; flex-wrap: wrap; gap: 25px; align-items: flex-start; }
     
-    /* EDITOR DE NOTAS */
-    .editor-nota { background: #fff; border: 1px solid #e0e0e0; padding: 20px; border-radius: 8px; margin-top: 15px; min-height: 250px; outline: none; }
+    .post-it {
+      width: 180px;
+      height: 180px;
+      padding: 15px;
+      box-shadow: 3px 4px 10px rgba(0,0,0,0.2);
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+    }
+    .post-it:hover { transform: scale(1.05) !important; box-shadow: 5px 6px 15px rgba(0,0,0,0.3); z-index: 10; }
+    .post-it h3 { font-size: 1rem; color: #333; margin-bottom: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .post-it p { font-size: 0.85rem; color: #555; flex: 1; overflow: hidden; }
+    
+    /* Variaciones de color y rotación simulando el tablero */
+    .color-1 { background: #fdfd96; transform: rotate(-2deg); } /* Amarillo */
+    .color-2 { background: #a2cffe; transform: rotate(1deg); }  /* Azul */
+    .color-3 { background: #cbaacb; transform: rotate(-1deg); } /* Morado */
+    .color-4 { background: #ffb3ba; transform: rotate(2deg); }  /* Rosa */
+
+    /* EDITOR DE NOTAS Y TRAZO */
+    .editor-contenedor { display: flex; flex-direction: column; gap: 20px; max-width: 800px; }
+    .editor-texto { background: #fff; border: 1px solid var(--borde); padding: 20px; border-radius: 12px; min-height: 150px; outline: none; line-height: 1.6; }
+    .editor-texto:empty:before { content: attr(data-placeholder); color: #aaa; }
+    
+    .lienzo-wrapper { background: #fff; padding: 15px; border: 1px solid var(--borde); border-radius: 12px; }
+    .lienzo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    canvas { background: #fafafa; border: 2px dashed #ccc; border-radius: 8px; cursor: crosshair; touch-action: none; width: 100%; height: 300px; }
   </style>
 </head>
 <body>
 
-  <!-- BARRA LATERAL (NAVEGACIÓN) -->
+  <!-- NAVEGACIÓN LATERAL -->
   <aside>
     <h2>Kudex</h2>
-    <ul class="menu-nav">
-      <li><button class="menu-btn active" onclick="cambiarVista('calendario')">📅 Calendario</button></li>
-      <li><button class="menu-btn" onclick="cambiarVista('pendientes')">☑️ Pendientes</button></li>
-      <li><button class="menu-btn" onclick="cambiarVista('notas')">📚 Cuadernos / Notas</button></li>
-    </ul>
+    <nav>
+      <button class="menu-btn" onclick="cambiarVista('calendario')">📅 Calendario</button>
+      <button class="menu-btn" onclick="cambiarVista('pendientes')">☑️ Pendientes</button>
+      <button class="menu-btn active" onclick="cambiarVista('tablero')">📌 Mis Notas</button>
+      <button class="menu-btn" id="btn-editor" style="display: none;" onclick="cambiarVista('editor')">✍️ Editando...</button>
+    </nav>
   </aside>
 
-  <!-- ÁREA DE CONTENIDO (PÁGINAS) -->
+  <!-- VISTAS PRINCIPALES -->
   <main>
 
-    <!-- PÁGINA 1: CALENDARIO Y FECHAS -->
-    <section id="vista-calendario" class="vista active">
-      <div class="header-seccion">
-        <h1>Mi Agenda</h1>
-      </div>
+    <!-- 1. VISTA CALENDARIO -->
+    <section id="vista-calendario" class="vista">
+      <div class="header-seccion"><h1>Mi Agenda</h1></div>
       <div class="agenda-card">
-        <h3>Selecciona un día:</h3>
+        <h3>Revisar fecha:</h3>
         <input type="date" id="selector-fecha">
-        <br><br>
-        <h4>Resumen de la fecha seleccionada:</h4>
-        <p style="color: #777; margin-top: 8px;">No hay eventos registrados para este día.</p>
       </div>
     </section>
 
-    <!-- PÁGINA 2: PENDIENTES / TAREAS -->
+    <!-- 2. VISTA PENDIENTES CON FECHAS -->
     <section id="vista-pendientes" class="vista">
-      <div class="header-seccion">
-        <h1>Lista de Pendientes</h1>
-      </div>
-      <div style="display: flex; gap: 10px; max-width: 500px;">
-        <input type="text" id="nueva-tarea-input" class="input-tarea" placeholder="Agregar un nuevo pendiente...">
+      <div class="header-seccion"><h1>Lista de Pendientes</h1></div>
+      <div class="contenedor-input-tarea">
+        <input type="text" id="input-tarea" class="input-tarea" placeholder="Escribe un nuevo pendiente..." onkeypress="manejarEnter(event)">
+        <input type="date" id="fecha-tarea" title="Fecha límite">
         <button class="btn-principal" onclick="agregarTarea()">Agregar</button>
       </div>
-      <ul id="contenedor-pendientes" class="lista-pendientes">
-        <li class="item-pendiente"><input type="checkbox"> Definir interfaz inicial de Kudex</li>
+      <ul id="lista-tareas" class="lista-pendientes">
+        <!-- Las tareas se inyectan por JavaScript -->
       </ul>
     </section>
 
-    <!-- PÁGINA 3: NOTAS Y CUADERNOS -->
-    <section id="vista-notas" class="vista">
+    <!-- 3. VISTA TABLERO DE NOTAS (TIPO CORCHO) -->
+    <section id="vista-tablero" class="vista active">
       <div class="header-seccion">
-        <h1>Mis Cuadernos</h1>
-        <button class="btn-principal" onclick="crearNota()">+ Nueva Nota</button>
+        <h1>Tablero de Ideas</h1>
+        <button class="btn-principal" onclick="crearNuevaNota()">+ Nueva Nota</button>
       </div>
-
-      <!-- Cuadrícula de cuadernos/notas creadas -->
-      <div id="grid-cuadernos" class="grid-cuadernos">
-        <div class="tarjeta-cuaderno" onclick="abrirNota('Notas de Emprendimiento')">
-          <h3>Emprendimiento</h3>
-          <small>1 nota creada</small>
+      
+      <div class="fondo-corcho">
+        <div id="grid-notas" class="grid-postits">
+          <!-- Las notas post-it se inyectan aquí -->
         </div>
       </div>
+    </section>
 
-      <!-- Editor de texto integrado -->
-      <div id="area-editor" style="margin-top: 30px;">
-        <h3 id="titulo-nota-activa">Editor de Nota Rápidas</h3>
-        <div class="editor-nota" contenteditable="true" placeholder="Escribe aquí el contenido de tu nota..."></div>
+    <!-- 4. VISTA EDITOR (TEXTO + TRAZO) -->
+    <section id="vista-editor" class="vista">
+      <div class="header-seccion">
+        <h1 id="titulo-nota-activa">Editando Nota</h1>
+        <div>
+          <button class="btn-principal" style="background: #555; margin-right: 10px;" onclick="cambiarVista('tablero')">Volver al Tablero</button>
+          <button class="btn-principal" onclick="guardarNotaActual()">💾 Guardar</button>
+        </div>
+      </div>
+      
+      <div class="editor-contenedor">
+        <div id="editor-texto" class="editor-texto" contenteditable="true" data-placeholder="Escribe tus apuntes rápidos con el teclado aquí..."></div>
+        
+        <div class="lienzo-wrapper">
+          <div class="lienzo-header">
+            <h3>Apuntes a mano</h3>
+            <button class="btn-principal" style="background: #e74c3c; padding: 6px 12px; font-size: 0.85rem;" onclick="limpiarLienzo()">🗑️ Limpiar Trazo</button>
+          </div>
+          <canvas id="pizarra"></canvas>
+        </div>
       </div>
     </section>
 
   </main>
 
   <script>
-    // 1. LÓGICA PARA CAMBIAR ENTRE PÁGINAS (VISTAS)
-    function cambiarVista(nombreVista) {
-      // Ocultar todas las vistas
-      document.querySelectorAll('.vista').forEach(vista => vista.classList.remove('active'));
-      document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
-
-      // Mostrar la vista seleccionada
-      document.getElementById(`vista-${nombreVista}`).classList.add('active');
-
-      // Activar botón del menú correspondiente
-      event.target.classList.add('active');
-    }
-
-    // 2. LÓGICA SIMPLE DE AGREGAR PENDIENTES
-    function agregarTarea() {
-      const input = document.getElementById('nueva-tarea-input');
-      const texto = input.value.trim();
+    // --- 1. LÓGICA DE NAVEGACIÓN ---
+    function cambiarVista(id) {
+      document.querySelectorAll('.vista').forEach(v => v.classList.remove('active'));
+      document.querySelectorAll('.menu-btn').forEach(b => {
+        if(b.id !== 'btn-editor') b.classList.remove('active');
+      });
+      document.getElementById(`vista-${id}`).classList.add('active');
       
-      if (texto !== '') {
-        const ul = document.getElementById('contenedor-pendientes');
+      const btnEditor = document.getElementById('btn-editor');
+      if(id === 'editor') {
+        btnEditor.style.display = 'block';
+        btnEditor.classList.add('active');
+        ajustarCanvas(); // Reajusta el lienzo al mostrar la vista
+      } else {
+        btnEditor.style.display = 'none';
+        btnEditor.classList.remove('active');
+      }
+    }
+
+    // --- 2. LÓGICA DE PENDIENTES CON FECHAS ---
+    let tareas = JSON.parse(localStorage.getItem('kudex_tareas')) || [];
+
+    function renderizarTareas() {
+      const lista = document.getElementById('lista-tareas');
+      lista.innerHTML = '';
+      tareas.forEach((tarea, index) => {
         const li = document.createElement('li');
-        li.className = 'item-pendiente';
-        li.innerHTML = `<input type="checkbox"> ${texto}`;
-        ul.appendChild(li);
-        input.value = '';
-      }
-    }
-
-    // 3. LÓGICA SIMPLE DE AGREGAR NOTAS/CUADERNOS
-    function crearNota() {
-      const nombreNota = prompt("Nombre de la nueva nota o cuaderno:");
-      if (nombreNota) {
-        const grid = document.getElementById('grid-cuadernos');
-        const nuevaTarjeta = document.createElement('div');
-        nuevaTarjeta.className = 'tarjeta-cuaderno';
-        nuevaTarjeta.onclick = () => abrirNota(nombreNota);
-        nuevaTarjeta.innerHTML = `
-          <h3>${nombreNota}</h3>
-          <small>Creado recientemente</small>
+        li.className = `item-pendiente ${tarea.completada ? 'completada' : ''}`;
+        const fechaHtml = tarea.fecha ? `<span class="fecha-etiqueta">📅 ${tarea.fecha}</span>` : '';
+        li.innerHTML = `
+          <input type="checkbox" ${tarea.completada ? 'checked' : ''} onchange="alternarTarea(${index})">
+          <span>${tarea.texto}</span>
+          ${fechaHtml}
+          <button class="btn-eliminar" onclick="eliminarTarea(${index})">X</button>
         `;
-        grid.appendChild(nuevaTarjeta);
+        lista.appendChild(li);
+      });
+      localStorage.setItem('kudex_tareas', JSON.stringify(tareas));
+    }
+
+    function agregarTarea() {
+      const input = document.getElementById('input-tarea');
+      const inputFecha = document.getElementById('fecha-tarea');
+      if (input.value.trim() === '') return;
+      
+      tareas.push({ 
+        texto: input.value.trim(), 
+        fecha: inputFecha.value, 
+        completada: false 
+      });
+      
+      input.value = '';
+      inputFecha.value = '';
+      renderizarTareas();
+    }
+
+    function manejarEnter(e) { if (e.key === 'Enter') agregarTarea(); }
+    function alternarTarea(index) { tareas[index].completada = !tareas[index].completada; renderizarTareas(); }
+    function eliminarTarea(index) { tareas.splice(index, 1); renderizarTareas(); }
+
+    // --- 3. LÓGICA DEL TABLERO DE NOTAS MULTIPLES ---
+    let notas = JSON.parse(localStorage.getItem('kudex_notas_multiples')) || [];
+    let idNotaActiva = null;
+
+    function renderizarTablero() {
+      const grid = document.getElementById('grid-notas');
+      grid.innerHTML = '';
+      
+      notas.forEach(nota => {
+        const div = document.createElement('div');
+        div.className = `post-it color-${nota.colorClase}`;
+        div.onclick = () => abrirNota(nota.id);
+        
+        // Mostrar una previsualización del texto quitando etiquetas HTML
+        const textoLimpio = nota.texto.replace(/<[^>]*>?/gm, '').substring(0, 50);
+        
+        div.innerHTML = `
+          <h3>${nota.titulo}</h3>
+          <p>${textoLimpio || 'Sin contenido...'}</p>
+        `;
+        grid.appendChild(div);
+      });
+    }
+
+    function crearNuevaNota() {
+      const titulo = prompt("Título de la nueva nota:");
+      if (!titulo) return;
+      
+      const nuevaNota = {
+        id: Date.now(),
+        titulo: titulo,
+        texto: '',
+        dibujo: null,
+        colorClase: Math.floor(Math.random() * 4) + 1 // Aleatorio entre 1 y 4
+      };
+      
+      notas.push(nuevaNota);
+      guardarDatosGlobales();
+      renderizarTablero();
+      abrirNota(nuevaNota.id);
+    }
+
+    function abrirNota(id) {
+      idNotaActiva = id;
+      const nota = notas.find(n => n.id === id);
+      
+      document.getElementById('titulo-nota-activa').innerText = nota.titulo;
+      document.getElementById('editor-texto').innerHTML = nota.texto;
+      
+      // Limpiar lienzo actual y cargar el guardado si existe
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (nota.dibujo) {
+        let img = new Image();
+        img.src = nota.dibujo;
+        img.onload = () => ctx.drawImage(img, 0, 0);
+      }
+      
+      cambiarVista('editor');
+    }
+
+    function guardarNotaActual() {
+      if (!idNotaActiva) return;
+      const index = notas.findIndex(n => n.id === idNotaActiva);
+      
+      if (index !== -1) {
+        notas[index].texto = document.getElementById('editor-texto').innerHTML;
+        notas[index].dibujo = canvas.toDataURL();
+        guardarDatosGlobales();
+        alert('Nota guardada correctamente.');
+        renderizarTablero();
       }
     }
 
-    function abrirNota(titulo) {
-      document.getElementById('titulo-nota-activa').innerText = `Editando: ${titulo}`;
+    function guardarDatosGlobales() {
+      localStorage.setItem('kudex_notas_multiples', JSON.stringify(notas));
+    }
+
+    // --- 4. MOTOR DE TRAZO (CANVAS Y LÁPIZ DIGITAL) ---
+    const canvas = document.getElementById('pizarra');
+    const ctx = canvas.getContext('2d');
+    let dibujando = false;
+
+    function ajustarCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      if(rect.width > 0) { // Solo ajusta si el canvas es visible
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+        // Restaurar dibujo al redimensionar
+        if(idNotaActiva) {
+          const nota = notas.find(n => n.id === idNotaActiva);
+          if (nota && nota.dibujo) {
+            let img = new Image();
+            img.src = nota.dibujo;
+            img.onload = () => ctx.drawImage(img, 0, 0);
+          }
+        }
+      }
+    }
+
+    window.onload = () => { renderizarTareas(); renderizarTablero(); };
+    window.onresize = ajustarCanvas;
+
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#2b2d42';
+
+    canvas.addEventListener('mousedown', (e) => iniciarTrazo(e.offsetX, e.offsetY));
+    canvas.addEventListener('mousemove', (e) => { if(dibujando) trazar(e.offsetX, e.offsetY); });
+    canvas.addEventListener('mouseup', detenerTrazo);
+    canvas.addEventListener('mouseout', detenerTrazo);
+
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      iniciarTrazo(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
+    });
+    canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      if(dibujando) {
+        const rect = canvas.getBoundingClientRect();
+        trazar(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
+      }
+    });
+    canvas.addEventListener('touchend', detenerTrazo);
+
+    function iniciarTrazo(x, y) { dibujando = true; ctx.beginPath(); ctx.moveTo(x, y); }
+    function trazar(x, y) { ctx.lineTo(x, y); ctx.stroke(); }
+    function detenerTrazo() { dibujando = false; ctx.closePath(); }
+    function limpiarLienzo() { 
+      ctx.clearRect(0, 0, canvas.width, canvas.height); 
+      if(idNotaActiva) {
+        const index = notas.findIndex(n => n.id === idNotaActiva);
+        notas[index].dibujo = null;
+        guardarDatosGlobales();
+      }
     }
   </script>
 </body>
